@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Guessing Game</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <main id="app">
+        <header>
+            <h1>Guessing Game</h1>
+            <div id="player-count">Players: 0</div>
+        </header>
+
+        <section id="auth-screen">
+            <input type="text" id="username" placeholder="Enter Nickname" maxlength="15">
+            <button id="btn-join">Join Lobby</button>
+        </section>
+
+        <section id="game-container" class="hidden">
+            <div id="scoreboard">
+                <h3>Scores</h3>
+                <ul id="score-list"></ul>
+            </div>
+
+            <div id="chat-interface">
+                <div id="message-display"></div>
+                
+                <div id="master-controls" class="hidden">
+                    <input type="text" id="q-input" placeholder="Question">
+                    <input type="text" id="a-input" placeholder="Answer">
+                    <button id="btn-setup">Set Question</button>
+                    <button id="btn-start" disabled>Start Game (Min 3 players)</button>
+                </div>
+
+                <div id="player-controls" class="hidden">
+                    <input type="text" id="guess-input" placeholder="Type your guess...">
+                    <button id="btn-guess">Guess</button>
+                </div>
+            </div>
+        </section>
+    </main>
+    <script type="module" src="js/socket-client.js"></script>
+    <script type="module" src="js/game.js"></script>
+</body>
+</html>
