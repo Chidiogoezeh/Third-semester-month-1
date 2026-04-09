@@ -11,6 +11,7 @@ export class GameSession {
         if (this.status === 'active') return null;
         const player = {
             id,
+            lastGuessTime: 0,
             name: name.replace(/<[^>]*>?/gm, ''), // Basic XSS sanitization
             score: 0,
             attempts: 3,
@@ -21,9 +22,9 @@ export class GameSession {
     }
 
     setQuestion(q, a) {
-        this.currentQuestion = q;
-        this.currentAnswer = a.toLowerCase().trim();
-    }
+    this.currentQuestion = q.replace(/<[^>]*>?/gm, ''); // Sanitize Question
+    this.currentAnswer = a.replace(/<[^>]*>?/gm, '').toLowerCase().trim(); // Sanitize Answer
+}
 
     canStart(id) {
         return this.isMaster(id) && this.players.length >= 3;
@@ -35,18 +36,37 @@ export class GameSession {
     }
 
     handleGuess(id, guess) {
-        if (this.status !== 'active') return { message: "Game not active" };
+        if (this.status !== 'active') return null;
         const player = this.players.find(p => p.id === id);
-        if (!player || player.isMaster || player.attempts <= 0) return { message: "Cannot guess" };
+        
+        // Basic Security
+        if (!player || player.isMaster || player.attempts <= 0) return null;
+
+        // Socket Rate Limiting (1 guess per second)
+        const now = Date.now();
+        if (now - player.lastGuessTime < 1000) return null; 
+        player.lastGuessTime = now;
 
         player.attempts--;
         const isCorrect = guess.toLowerCase().trim() === this.currentAnswer;
 
         if (isCorrect) {
             player.score += 10;
-            return this.endGame(player.name);
+            return { 
+                isCorrect: true, 
+                winner: player.name, 
+                winnerId: id,
+                answer: this.currentAnswer,
+                type: 'win'
+            };
         }
         return { isCorrect: false, attemptsLeft: player.attempts };
+    }
+
+        resetAll() {
+        this.currentQuestion = "";
+        this.currentAnswer = "";
+        this.status = 'waiting';
     }
 
     endGame(winnerName) {
@@ -66,6 +86,7 @@ export class GameSession {
     }
 
     rotateMaster() {
+        this.status = 'waiting'; // Ensure game is stopped
         this.players.forEach(p => p.isMaster = false);
         this.masterIndex = (this.masterIndex + 1) % this.players.length;
         if (this.players[this.masterIndex]) {

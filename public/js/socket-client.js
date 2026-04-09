@@ -48,11 +48,18 @@ socket.on('guessResult', (res) => {
 });
 
 socket.on('gameEnded', (data) => {
-    const text = data.type === 'win' 
-        ? `Winner: ${data.winner}! The answer was ${data.answer}` 
-        : `Time up! No one won. The answer was ${data.answer}`;
-    UI.appendMessage(text, 'system');
+    if (data.type === 'win') {
+        if (data.winnerId === socket.id) {
+            UI.appendMessage("YOU HAVE WON! +10 points", 'system');
+        } else {
+            UI.appendMessage(`${data.winner} won! Answer: ${data.answer}`, 'system');
+        }
+    } else {
+        UI.appendMessage(`Time's up! No winner. Answer: ${data.answer}`, 'system');
+    }
     
-    // Refresh UI for next round master
-    setTimeout(() => location.reload(), 5000); 
+    // Delay to let players see results, then refresh to assign new Master
+    setTimeout(() => {
+        window.location.reload(); 
+    }, 5000); 
 });

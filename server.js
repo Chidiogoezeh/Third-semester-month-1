@@ -4,11 +4,15 @@ import { Server } from 'socket.io';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { GameSession } from './src/gameLogic.js';
+import { rateLimit } from 'express-rate-limit';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer);
+const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 100 });
+
+app.use(limiter);
 
 app.use(express.static('public'));
 
@@ -17,10 +21,9 @@ const session = new GameSession();
 io.on('connection', (socket) => {
     socket.on('joinGame', (username) => {
         const user = session.addUser(socket.id, username);
-        if (user) {
-            io.emit('updatePlayers', session.getPlayers());
-            socket.emit('initPlayer', user);
-        }
+            if (!user) {
+                return socket.emit('error', 'Game in progress. Please wait.');
+            }
     });
 
     socket.on('setGameRules', (data) => {
@@ -45,18 +48,29 @@ io.on('connection', (socket) => {
 
     socket.on('submitGuess', (guess) => {
         const result = session.handleGuess(socket.id, guess);
-        if (result.isCorrect) {
+        
+        // If game ended (winner found)
+        if (result && result.isCorrect) {
+            session.status = 'waiting'; // Lock the game
+            session.rotateMaster();  
             io.emit('gameEnded', result);
-        } else {
+        } 
+        // If game still active but guess was processed
+        else if (result && result.isCorrect === false) {
             socket.emit('guessResult', result);
         }
+        
         io.emit('updatePlayers', session.getPlayers());
     });
 
     socket.on('disconnect', () => {
         session.removeUser(socket.id);
+        if (session.players.length === 0) {
+            session.resetAll(); // Logic to clear question/answer for a fresh start
+        }
         io.emit('updatePlayers', session.getPlayers());
     });
 });
 
-httpServer.listen(3000, () => console.log('Server running on http://localhost:3000'));
+const PORT = process.env.PORT || 3000;
+httpServer.listen(PORT, () => console.log(`Server running on port ${PORT}`));
