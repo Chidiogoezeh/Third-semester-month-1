@@ -15,6 +15,13 @@ socket.on('initPlayer', (player) => {
 });
 
 socket.on('updatePlayers', (players) => {
+    // Check if I am now the master
+    const me = players.find(p => p.name === document.getElementById('username').value);
+    if (me && me.isMaster && !myRole.isMaster) {
+        myRole.isMaster = true;
+        UI.toggleView(true, true); // Update UI to show master controls
+        UI.appendMessage("You are now the Game Master!", "system");
+    }
     UI.updateScoreboard(players);
 });
 

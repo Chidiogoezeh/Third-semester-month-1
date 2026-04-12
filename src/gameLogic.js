@@ -5,6 +5,7 @@ export class GameSession {
         this.currentQuestion = "";
         this.currentAnswer = "";
         this.masterIndex = 0;
+        this.requiredPlayers = 3;
     }
 
     addUser(id, name) {
@@ -21,13 +22,22 @@ export class GameSession {
         return player;
     }
 
+    setPlayerLimit(limit) {
+        const num = parseInt(limit);
+        if (!isNaN(num) && num >= 3) {
+            this.requiredPlayers = num;
+        }
+    }
+
     setQuestion(q, a) {
-    this.currentQuestion = q.replace(/<[^>]*>?/gm, ''); // Sanitize Question
-    this.currentAnswer = a.replace(/<[^>]*>?/gm, '').toLowerCase().trim(); // Sanitize Answer
-}
+        if (!q || !a || q.length > 200 || a.length > 50) return false; // Validation
+        this.currentQuestion = q.replace(/<[^>]*>?/gm, ''); 
+        this.currentAnswer = a.replace(/<[^>]*>?/gm, '').toLowerCase().trim();
+        return true;
+    }
 
     canStart(id) {
-        return this.isMaster(id) && this.players.length >= 3;
+        return this.isMaster(id) && this.players.length >= this.requiredPlayers;
     }
 
     start() {

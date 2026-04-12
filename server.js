@@ -9,7 +9,12 @@ import { rateLimit } from 'express-rate-limit';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const httpServer = createServer(app);
-const io = new Server(httpServer);
+const io = new Server(httpServer, {
+    cors: {
+        origin: process.env.CLIENT_URL || "*",
+        methods: ["GET", "POST"]
+    }
+});
 const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 100 });
 
 app.use(limiter);
@@ -29,6 +34,7 @@ io.on('connection', (socket) => {
     socket.on('setGameRules', (data) => {
         if (session.isMaster(socket.id)) {
             session.setQuestion(data.question, data.answer);
+            session.setPlayerLimit(data.playerLimit);
             io.emit('gameReady');
         }
     });
