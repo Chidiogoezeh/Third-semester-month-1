@@ -15,8 +15,9 @@ export const UI = {
         list.textContent = ''; 
         players.forEach(p => {
             const li = document.createElement('li');
-            const isMe = p.id === currentSocketId;
-            li.style.fontWeight = isMe ? 'bold' : 'normal';
+            if (p.id === currentSocketId) {
+                li.classList.add('current-player');
+            }
             li.textContent = `${p.name}: ${p.score}pts | ${p.isMaster ? '[Master]' : `Remaining: ${p.attempts}`}`;
             list.appendChild(li);
         });

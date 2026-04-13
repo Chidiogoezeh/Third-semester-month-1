@@ -64,20 +64,17 @@ io.on('connection', (socket) => {
     socket.on('submitGuess', (guess) => {
         const result = session.handleGuess(socket.id, guess);
         
-        // If game ended (winner found)
         if (result && result.isCorrect) {
-            session.status = 'waiting'; // Lock the game
+            clearTimeout(gameTimeout); // STOP the timer immediately
+            session.status = 'waiting'; 
             session.rotateMaster();  
-            io.emit('gameEnded', result);
+            io.emit('gameEnded', result); // Broadcast win to EVERYONE
+            io.emit('updatePlayers', session.getPlayers()); 
         } 
-        // If game still active but guess was processed
         else if (result && result.isCorrect === false) {
             socket.emit('guessResult', result);
+            io.emit('updatePlayers', session.getPlayers()); // Update attempts on scoreboard
         }
-
-        clearTimeout(gameTimeout);
-        
-        io.emit('updatePlayers', session.getPlayers());
     });
 
     socket.on('disconnect', () => {

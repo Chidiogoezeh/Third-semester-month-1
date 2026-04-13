@@ -50,10 +50,8 @@ export class GameSession {
         if (this.status !== 'active') return null;
         const player = this.players.find(p => p.id === id);
         
-        // Basic Security
         if (!player || player.isMaster || player.attempts <= 0) return null;
 
-        // Socket Rate Limiting (1 guess per second)
         const now = Date.now();
         if (now - player.lastGuessTime < 1000) return null; 
         player.lastGuessTime = now;
@@ -62,6 +60,7 @@ export class GameSession {
         const isCorrect = guess.toLowerCase().trim() === this.currentAnswer;
 
         if (isCorrect) {
+            this.status = 'ended'; // Lock state so others can't guess
             player.score += 10;
             return { 
                 isCorrect: true, 
@@ -72,15 +71,15 @@ export class GameSession {
             };
         }
         return { isCorrect: false, attemptsLeft: player.attempts };
-        }
+    }
 
-        resetAll() {
+    resetAll() {
         this.currentQuestion = "";
         this.currentAnswer = "";
         this.status = 'waiting';
         this.players = [];
         this.masterIndex = 0;
-        }
+    }
 
     endGame(winnerName) {
         const data = { 

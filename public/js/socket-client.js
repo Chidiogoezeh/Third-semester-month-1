@@ -79,16 +79,24 @@ socket.on('guessResult', (res) => {
 });
 
 socket.on('gameEnded', (data) => {
+    // Immediately disable controls for everyone
+    document.getElementById('btn-guess').disabled = true;
+    document.getElementById('guess-input').disabled = true;
+
     const winMsg = data.type === 'win' 
-        ? `Game Over! ${data.winner} won with "${data.answer}"` 
-        : `Time's up! The answer was "${data.answer}"`;
+        ? `GAME OVER: ${data.winner} guessed correctly! The answer was "${data.answer}".` 
+        : `TIME EXPIRED: No one guessed it. The answer was "${data.answer}".`;
     
     UI.appendMessage(winMsg, 'system');
-    if (data.winnerId === socket.id) UI.appendMessage("CONGRATS! +10 Points.", "system");
+    
+    if (data.winnerId === socket.id) {
+        UI.appendMessage("YOU HAVE WON! +10 Points awarded.", "system");
+    }
 
-    // Reset UI for next round without a full reload to maintain socket connection
     setTimeout(() => {
-        document.getElementById('message-display').textContent = '';
-        UI.appendMessage("Starting next round...", "system");
+        UI.appendMessage("Preparing next round... New master is being assigned.", "system");
+        // Clear inputs for the next round
+        document.getElementById('q-input').value = '';
+        document.getElementById('a-input').value = '';
     }, 4000);
 });
