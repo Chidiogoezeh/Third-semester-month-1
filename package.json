@@ -1,0 +1,27 @@
+{
+  "name": "third-semester-month-1_guessing-game",
+  "version": "1.0.0",
+  "description": "Guessing Game",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Chidiogoezeh/Third-semester-month-1.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/Chidiogoezeh/Third-semester-month-1/issues"
+  },
+  "homepage": "https://github.com/Chidiogoezeh/Third-semester-month-1#readme",
+  "dependencies": {
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.3.2",
+    "socket.io": "^4.8.3"
+  }
+}
