@@ -29,11 +29,12 @@ io.on('connection', (socket) => {
     socket.on('joinGame', (username) => {
         const user = session.addUser(socket.id, username);
         if (!user) {
-            return socket.emit('error', 'Game in progress. Please wait.');
+            return socket.emit('error', 'Session full or in progress.');
         }
         
-        io.emit('updatePlayers', session.getPlayers());
-        socket.emit('initPlayer', user);
+        // Crucial: send back the augmented player object
+        socket.emit('initPlayer', { ...user, id: socket.id });
+        io.emit('updatePlayers', session.getPlayers()); 
     });
 
     socket.on('setGameRules', (data) => {

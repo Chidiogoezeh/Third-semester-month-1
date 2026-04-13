@@ -1,37 +1,53 @@
 import { UI } from './game.js';
 
 const socket = io();
-let myRole = { isMaster: false };
+let myId = null;
+let isMasterStatus = false;
 
 document.getElementById('btn-join').addEventListener('click', () => {
-    const name = document.getElementById('username').value;
+    const name = document.getElementById('username').value.trim();
     if (name) socket.emit('joinGame', name);
 });
 
 socket.on('initPlayer', (player) => {
-    myRole.isMaster = player.isMaster;
+    myId = socket.id;
+    isMasterStatus = player.isMaster;
     UI.toggleView(true, player.isMaster);
-    UI.appendMessage(`Welcome ${player.name}!`, 'system');
+    UI.appendMessage(`You joined as ${player.isMaster ? 'Master' : 'Player'}.`, 'system');
 });
 
 socket.on('updatePlayers', (players) => {
-    // Check if I am now the master
-    const me = players.find(p => p.name === document.getElementById('username').value);
-    if (me && me.isMaster && !myRole.isMaster) {
-        myRole.isMaster = true;
-        UI.toggleView(true, true); // Update UI to show master controls
-        UI.appendMessage("You are now the Game Master!", "system");
+    const me = players.find(p => p.id === socket.id);
+    
+    // Notify room of new joiners
+    if (players.length > 0) {
+        const latest = players[players.length - 1];
+        // Only show message if it's not the user themselves (already handled in init)
+        if (latest.id !== socket.id) {
+            UI.appendMessage(`${latest.name} joined the game!`, 'system');
+        }
     }
-    UI.updateScoreboard(players);
+
+    // Role switch logic
+    if (me && me.isMaster && !isMasterStatus) {
+        isMasterStatus = true;
+        UI.toggleView(true, true);
+        UI.appendMessage("The crown has passed to you! You are the new Master.", "system");
+    }
+    
+    UI.updateScoreboard(players, socket.id);
+    
+    // Enable/Disable Start button based on player count
+    const startBtn = document.getElementById('btn-start');
+    if (startBtn) startBtn.disabled = players.length < 3;
 });
 
 document.getElementById('btn-setup').addEventListener('click', () => {
-    const question = document.getElementById('q-input').value;
-    const answer = document.getElementById('a-input').value;
-    const limit = document.getElementById('limit-input').value;
+    const question = document.getElementById('q-input').value.trim();
+    const answer = document.getElementById('a-input').value.trim();
     if (question && answer) {
-        socket.emit('setGameRules', { question, answer, playerLimit: limit });
-        UI.appendMessage("Question set! You can now start the game.", "system");
+        socket.emit('setGameRules', { question, answer, playerLimit: 3 });
+        UI.appendMessage("Question & Answer locked in!", "system");
     }
 });
 
@@ -40,39 +56,39 @@ document.getElementById('btn-start').addEventListener('click', () => {
 });
 
 socket.on('gameStarted', (data) => {
-    UI.appendMessage(`GAME STARTED: ${data.question}`, 'system');
+    UI.appendMessage(`QUESTION: ${data.question}`, 'system');
+    document.getElementById('btn-guess').disabled = false;
+    document.getElementById('guess-input').disabled = false;
 });
 
 document.getElementById('btn-guess').addEventListener('click', () => {
-    const guess = document.getElementById('guess-input').value;
+    const guessInput = document.getElementById('guess-input');
+    const guess = guessInput.value.trim();
     if (guess) {
         socket.emit('submitGuess', guess);
-        document.getElementById('guess-input').value = '';
+        guessInput.value = '';
     }
 });
 
 socket.on('guessResult', (res) => {
-    UI.appendMessage(`Wrong! Attempts left: ${res.attemptsLeft}`);
-    if (res.attemptsLeft === 0) {
+    UI.appendMessage(`Wrong! ${res.attemptsLeft} attempts remaining.`);
+    if (res.attemptsLeft <= 0) {
         document.getElementById('btn-guess').disabled = true;
         document.getElementById('guess-input').disabled = true;
-        UI.appendMessage("You have used all your attempts!", "system");
     }
 });
 
 socket.on('gameEnded', (data) => {
-    if (data.type === 'win') {
-        if (data.winnerId === socket.id) {
-            UI.appendMessage("YOU HAVE WON! +10 points", 'system');
-        } else {
-            UI.appendMessage(`${data.winner} won! Answer: ${data.answer}`, 'system');
-        }
-    } else {
-        UI.appendMessage(`Time's up! No winner. Answer: ${data.answer}`, 'system');
-    }
+    const winMsg = data.type === 'win' 
+        ? `Game Over! ${data.winner} won with "${data.answer}"` 
+        : `Time's up! The answer was "${data.answer}"`;
     
-    // Delay to let players see results, then refresh to assign new Master
+    UI.appendMessage(winMsg, 'system');
+    if (data.winnerId === socket.id) UI.appendMessage("CONGRATS! +10 Points.", "system");
+
+    // Reset UI for next round without a full reload to maintain socket connection
     setTimeout(() => {
-        window.location.reload(); 
-    }, 5000); 
+        document.getElementById('message-display').textContent = '';
+        UI.appendMessage("Starting next round...", "system");
+    }, 4000);
 });

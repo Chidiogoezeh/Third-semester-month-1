@@ -112,7 +112,13 @@ export class GameSession {
     }
 
     getPlayers() {
-        return this.players.map(({id, ...rest}) => rest);
+        return this.players.map(p => ({
+            id: p.id,
+            name: p.name,
+            score: p.score,
+            attempts: p.attempts,
+            isMaster: p.isMaster
+        }));
     }
 
     removeUser(id) {

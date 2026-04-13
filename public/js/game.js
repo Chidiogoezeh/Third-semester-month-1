@@ -3,25 +3,24 @@ export const UI = {
         const container = document.getElementById('message-display');
         const div = document.createElement('div');
         div.classList.add('msg');
-        if (type === 'system') div.classList.add('system');
+        // Adding specific class for the sender
+        div.classList.add(type === 'system' ? 'system' : 'user-msg');
         div.textContent = text;
         container.appendChild(div);
-        container.scrollTop = container.scrollHeight;
+        container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
     },
 
-    updateScoreboard: (players) => {
+    updateScoreboard: (players, currentSocketId) => {
         const list = document.getElementById('score-list');
         list.textContent = ''; 
         players.forEach(p => {
             const li = document.createElement('li');
-            // ADD: p.attempts to the textContent
-            li.textContent = `${p.name}: ${p.score}pts | ${p.isMaster ? '[Master]' : `Attempts: ${p.attempts}`}`;
+            const isMe = p.id === currentSocketId;
+            li.style.fontWeight = isMe ? 'bold' : 'normal';
+            li.textContent = `${p.name}: ${p.score}pts | ${p.isMaster ? '[Master]' : `Remaining: ${p.attempts}`}`;
             list.appendChild(li);
         });
         document.getElementById('player-count').textContent = `Players: ${players.length}`;
-        
-        const startBtn = document.getElementById('btn-start');
-        if(startBtn) startBtn.disabled = players.length < 3;
     },
 
     toggleView: (isLoggedIn, isMaster = false) => {
