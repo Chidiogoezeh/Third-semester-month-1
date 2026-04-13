@@ -14,7 +14,8 @@ export const UI = {
         list.textContent = ''; 
         players.forEach(p => {
             const li = document.createElement('li');
-            li.textContent = `${p.name}: ${p.score}pts ${p.isMaster ? '(Master)' : ''}`;
+            // ADD: p.attempts to the textContent
+            li.textContent = `${p.name}: ${p.score}pts | ${p.isMaster ? '[Master]' : `Attempts: ${p.attempts}`}`;
             list.appendChild(li);
         });
         document.getElementById('player-count').textContent = `Players: ${players.length}`;

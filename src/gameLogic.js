@@ -30,9 +30,10 @@ export class GameSession {
     }
 
     setQuestion(q, a) {
-        if (!q || !a || q.length > 200 || a.length > 50) return false; // Validation
-        this.currentQuestion = q.replace(/<[^>]*>?/gm, ''); 
-        this.currentAnswer = a.replace(/<[^>]*>?/gm, '').toLowerCase().trim();
+        if (!q || !a || q.length > 200 || a.length > 50) return false;
+        this.currentQuestion = q.trim(); 
+        // Ensure we store a clean lowercase version for comparison
+        this.currentAnswer = a.toLowerCase().trim().replace(/\s+/g, ' '); 
         return true;
     }
 
@@ -71,13 +72,15 @@ export class GameSession {
             };
         }
         return { isCorrect: false, attemptsLeft: player.attempts };
-    }
+        }
 
         resetAll() {
         this.currentQuestion = "";
         this.currentAnswer = "";
         this.status = 'waiting';
-    }
+        this.players = [];
+        this.masterIndex = 0;
+        }
 
     endGame(winnerName) {
         const data = { 

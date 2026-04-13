@@ -11,7 +11,7 @@ const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
     cors: {
-        origin: process.env.CLIENT_URL || "*",
+        origin: process.env.NODE_ENV === 'production' ? process.env.CLIENT_URL : "*",
         methods: ["GET", "POST"]
     }
 });
@@ -23,12 +23,17 @@ app.use(express.static('public'));
 
 const session = new GameSession();
 
+let gameTimeout;
+
 io.on('connection', (socket) => {
     socket.on('joinGame', (username) => {
         const user = session.addUser(socket.id, username);
-            if (!user) {
-                return socket.emit('error', 'Game in progress. Please wait.');
-            }
+        if (!user) {
+            return socket.emit('error', 'Game in progress. Please wait.');
+        }
+        
+        io.emit('updatePlayers', session.getPlayers());
+        socket.emit('initPlayer', user);
     });
 
     socket.on('setGameRules', (data) => {
@@ -44,10 +49,13 @@ io.on('connection', (socket) => {
             session.start();
             io.emit('gameStarted', { question: session.currentQuestion });
             
-            // 60-second timer
-            setTimeout(() => {
+            clearTimeout(gameTimeout); 
+            gameTimeout = setTimeout(() => {
                 const result = session.endByTimeout();
-                if (result) io.emit('gameEnded', result);
+                if (result) {
+                    io.emit('gameEnded', result);
+                    io.emit('updatePlayers', session.getPlayers()); // Refresh scores/roles
+                }
             }, 60000);
         }
     });
@@ -65,6 +73,8 @@ io.on('connection', (socket) => {
         else if (result && result.isCorrect === false) {
             socket.emit('guessResult', result);
         }
+
+        clearTimeout(gameTimeout);
         
         io.emit('updatePlayers', session.getPlayers());
     });
