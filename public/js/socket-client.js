@@ -21,21 +21,24 @@ socket.on('initPlayer', (player) => {
     UI.appendMessage(`Logged in as ${player.name}`, 'system');
 });
 
+/* Correct the updatePlayers logic in socket-client.js */
 socket.on('updatePlayers', (players) => {
     const me = players.find(p => p.id === socket.id);
-    if (players.length > 0) {
-        const latest = players[players.length - 1];
-        if (latest.id !== socket.id) UI.showJoinTicker(latest.name);
+    
+    // Update local master status based on server-side rotation
+    if (me) {
+        if (me.isMaster !== isMasterStatus) {
+            isMasterStatus = me.isMaster;
+            UI.toggleView(true, isMasterStatus);
+            const roleMsg = isMasterStatus ? "You are the new Master!" : "You are now a Player.";
+            UI.appendMessage(roleMsg, "system");
+        }
     }
-
-    if (me && me.isMaster && !isMasterStatus) {
-        isMasterStatus = true;
-        UI.toggleView(true, true);
-        UI.appendMessage("You are now the Master!", "system");
-    }
+    
     UI.updateScoreboard(players, socket.id);
     const startBtn = document.getElementById('btn-start');
-    if (startBtn) startBtn.disabled = players.length < 3;
+    // Master can only start if current player count matches or exceeds limit
+    if (startBtn) startBtn.disabled = (players.length < 3);
 });
 
 // MASTER ACTIONS
@@ -97,13 +100,18 @@ socket.on('gameEnded', (data) => {
     document.getElementById('btn-guess').disabled = true;
     document.getElementById('guess-input').disabled = true;
     
-    const resultText = data.type === 'win' ? `CORRECT! ${data.winner} won.` : `TIME UP!`;
+    const resultText = data.type === 'win' ? `Winner: ${data.winner}!` : `Time's up!`;
     UI.updateQuestion(`${resultText} Answer: ${data.answer}`);
-    UI.appendMessage(resultText, 'system');
+    
+    // Display result in chat
+    UI.appendMessage(`--- ${resultText} ---`, 'system');
 
     setTimeout(() => {
-        UI.updateQuestion("Waiting for Master to set question...");
-        document.getElementById('q-input').value = '';
-        document.getElementById('a-input').value = '';
+        // Prepare for next round without master rotation
+        UI.updateQuestion("Master is preparing the next question...");
+        if (isMasterStatus) {
+            document.getElementById('q-input').value = '';
+            document.getElementById('a-input').value = '';
+        }
     }, 5000);
 });

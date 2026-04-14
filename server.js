@@ -26,21 +26,25 @@ const session = new GameSession();
 let gameTimeout;
 
 io.on('connection', (socket) => {
+    /* Corrected joinGame listener in server.js */
     socket.on('joinGame', (username) => {
-        // Logic check: Allow re-joining if the ID exists (for refresh), 
-        // but block brand new players if game status is 'active'
         const existingPlayer = session.players.find(p => p.name === username);
         
+        // If game started and user isn't re-joining, block them
         if (session.status === 'active' && !existingPlayer) {
-            return socket.emit('error', 'Game in progress. Please wait for the next round.');
+            return socket.emit('error', 'Game in progress! You cannot join now.');
         }
 
         const user = existingPlayer || session.addUser(socket.id, username);
-        if (existingPlayer) existingPlayer.id = socket.id; // Update ID on refresh
+        
+        if (!user) {
+            return socket.emit('error', 'Game is full! Maximum players reached.');
+        }
+
+        if (existingPlayer) existingPlayer.id = socket.id; 
 
         socket.emit('initPlayer', { ...user, id: socket.id });
         
-        // If a game is currently active, send the question to the re-joined player
         if (session.status === 'active') {
             socket.emit('gameStarted', { question: session.currentQuestion });
         }
@@ -73,7 +77,6 @@ io.on('connection', (socket) => {
 
     socket.on('submitGuess', (guess) => {
         const result = session.handleGuess(socket.id, guess);
-
         if (result && result.isCorrect) {
             clearTimeout(gameTimeout);
             io.emit('gameEnded', result); 

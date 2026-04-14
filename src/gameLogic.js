@@ -9,14 +9,18 @@ export class GameSession {
     }
 
     addUser(id, name) {
-        if (this.status === 'active') return null;
+        // 1. Check if game is in progress
+        // 2. Check if player limit reached
+        if (this.status === 'active' || this.players.length >= this.requiredPlayers) {
+            return null; 
+        }
+        
         const player = {
             id,
-            lastGuessTime: 0,
-            name: name.replace(/<[^>]*>?/gm, ''), // Basic XSS sanitization
+            name: name.replace(/<[^>]*>?/gm, ''), 
             score: 0,
             attempts: 3,
-            isMaster: this.players.length === 0
+            isMaster: this.players.length === 0 // First person is permanent Master
         };
         this.players.push(player);
         return player;
@@ -92,11 +96,8 @@ export class GameSession {
     }
 
     rotateMaster() {
-        // Logic remains for manual triggers, but we won't call it automatically anymore
-        const currentMaster = this.players.find(p => p.isMaster);
-        if (!currentMaster && this.players.length > 0) {
-            this.players[0].isMaster = true;
-        }
+        // Rule: No automatic rotation. Master remains master.
+        return; 
     }
 
     isMaster(id) {
