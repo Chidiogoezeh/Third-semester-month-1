@@ -7,21 +7,35 @@
 
 body {
     font-family: 'Segoe UI', system-ui, sans-serif;
-    background: var(--bg);
+    /* uploaded image is used as a repeating, subtle background */
+    background: url('../img/guess-background.png') repeat; 
+    background-size: 300px;
     margin: 0;
     display: flex;
     justify-content: center;
-    min-height: -webkit-fill-available;
+    align-items: center; /* Center the app vertically */
+    min-height: 100vh;
 }
 
 #app {
-    width: 100%;
-    max-width: 600px;
-    background: var(--white);
+    width: 95%;
+    max-width: 500px; /* Slightly narrower for a more 'centric' feel */
+    background: rgba(255, 255, 255, 0.95); /* Slight transparency to see background */
     display: flex;
     flex-direction: column;
-    height: 100vh;
-    height: 100svh;
+    height: 90vh; /* Don't take full height on desktop for better aesthetics */
+    border-radius: 20px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+    overflow: hidden;
+}
+
+#auth-screen {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 40px;
+    gap: 20px;
+    height: 100%;
 }
 
 /* Responsive Adjustments */

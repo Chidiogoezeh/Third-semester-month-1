@@ -39,10 +39,19 @@ socket.on('updatePlayers', (players) => {
 });
 
 // MASTER ACTIONS
+/* Correct the setup listener in socket-client.js */
 document.getElementById('btn-setup').addEventListener('click', () => {
     const question = document.getElementById('q-input').value.trim();
     const answer = document.getElementById('a-input').value.trim();
-    if (question && answer) socket.emit('setGameRules', { question, answer, playerLimit: 3 });
+    const limit = document.getElementById('limit-input').value || 3;
+    
+    if (question && answer) {
+        socket.emit('setGameRules', { 
+            question, 
+            answer, 
+            playerLimit: parseInt(limit) 
+        });
+    }
 });
 
 socket.on('gameReady', () => {

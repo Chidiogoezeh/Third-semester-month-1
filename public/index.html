@@ -20,6 +20,7 @@
         </section>
 
         <section id="game-container" class="hidden">
+
             <div id="active-game-banner">
                 <h2 id="current-question-text">Waiting for Master to set question...</h2>
                 <div id="join-ticker"></div> </div>
@@ -35,6 +36,7 @@
                     <div class="input-group">
                         <input type="text" id="q-input" placeholder="Enter Question...">
                         <input type="text" id="a-input" placeholder="Enter Answer...">
+                        <input type="number" id="limit-input" placeholder="Min players (e.g. 3)" min="2" value="3">
                     </div>
                     <div class="button-group">
                         <button id="btn-setup">Set Question</button>

@@ -77,15 +77,14 @@ export class GameSession {
     }
 
     endGame(winnerName) {
-        const data = { 
-            winner: winnerName, 
-            answer: this.currentAnswer,
-            type: winnerName ? 'win' : 'timeout' 
-        };
-        this.status = 'waiting';
-        this.rotateMaster();
-        return data;
-    }
+    const data = { 
+        winner: winnerName, 
+        answer: this.currentAnswer,
+        type: winnerName ? 'win' : 'timeout' 
+    };
+    this.status = 'waiting';
+    return data;
+}
 
     endByTimeout() {
         if (this.status === 'active') return this.endGame(null);
@@ -93,10 +92,11 @@ export class GameSession {
     }
 
     rotateMaster() {
-        this.masterIndex = (this.masterIndex + 1) % this.players.length;
-        this.players.forEach((p, index) => {
-            p.isMaster = (index === this.masterIndex);
-        });
+        // Logic remains for manual triggers, but we won't call it automatically anymore
+        const currentMaster = this.players.find(p => p.isMaster);
+        if (!currentMaster && this.players.length > 0) {
+            this.players[0].isMaster = true;
+        }
     }
 
     isMaster(id) {

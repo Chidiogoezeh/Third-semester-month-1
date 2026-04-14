@@ -78,10 +78,9 @@ io.on('connection', (socket) => {
             clearTimeout(gameTimeout);
             io.emit('gameEnded', result); 
             
-            // Delay the role rotation so players can see the "Winner" screen first
             setTimeout(() => {
-                session.rotateMaster(); 
                 session.status = 'waiting';
+                // broadcast the current state; roles stay the same
                 io.emit('updatePlayers', session.getPlayers());
             }, 5000);
         }
