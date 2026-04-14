@@ -57,17 +57,13 @@ export class GameSession {
         if (isCorrect) {
             this.status = 'ended'; 
             player.score += 10;
-            // Store answer before clearing
-            const finalAnswer = this.currentAnswer;
-            const winnerData = { 
+            return { 
                 isCorrect: true, 
                 winner: player.name, 
                 winnerId: id,
-                answer: finalAnswer,
+                answer: this.currentAnswer,
                 type: 'win'
             };
-            this.rotateMaster(); 
-            return winnerData;
         }
         return { isCorrect: false, attemptsLeft: player.attempts };
     }

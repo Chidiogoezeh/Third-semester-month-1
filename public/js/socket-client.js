@@ -54,12 +54,26 @@ document.getElementById('btn-start').addEventListener('click', () => socket.emit
 
 // GAMEPLAY
 socket.on('gameStarted', (data) => {
+    // Clear the message display to focus on the game (No innerHTML used)
+    const display = document.getElementById('message-display');
+    while (display.firstChild) display.removeChild(display.firstChild);
+    
     UI.updateQuestion(data.question);
+    UI.appendMessage("--- ROUND STARTED ---", "system");
+
     if (!isMasterStatus) {
-        document.getElementById('btn-guess').disabled = false;
-        document.getElementById('guess-input').disabled = false;
-        document.getElementById('guess-input').focus();
+        const gBtn = document.getElementById('btn-guess');
+        const gInput = document.getElementById('guess-input');
+        gBtn.disabled = false;
+        gInput.disabled = false;
+        gInput.focus();
     }
+});
+
+socket.on('error', (msg) => {
+    alert(msg);
+    sessionStorage.removeItem('guess_name');
+    location.reload();
 });
 
 document.getElementById('btn-guess').addEventListener('click', () => {

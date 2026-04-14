@@ -11,7 +11,10 @@ export const UI = {
     },
 
     updateQuestion: (text) => {
-        document.getElementById('current-question-text').textContent = text;
+        const qText = document.getElementById('current-question-text');
+        qText.textContent = text;
+        // Visually highlight the question area
+        qText.parentElement.style.backgroundColor = '#6c5ce7'; 
     },
 
     showJoinTicker: (name) => {
@@ -35,16 +38,14 @@ export const UI = {
     },
 
     toggleView: (isLoggedIn, isMaster = false) => {
-        const auth = document.getElementById('auth-screen');
-        const game = document.getElementById('game-container');
-        const master = document.getElementById('master-controls');
-        const player = document.getElementById('player-controls');
-
-        auth.classList.toggle('hidden', isLoggedIn);
-        game.classList.toggle('hidden', !isLoggedIn);
+        document.getElementById('auth-screen').classList.toggle('hidden', isLoggedIn);
+        document.getElementById('game-container').classList.toggle('hidden', !isLoggedIn);
         
-        // Crucial: Ensure when a game ends, the new Master gets their controls
-        master.classList.toggle('hidden', !isMaster);
-        player.classList.toggle('hidden', isMaster);
-    },
+        const mControls = document.getElementById('master-controls');
+        const pControls = document.getElementById('player-controls');
+
+        // Ensure Master NEVER sees the guess input, and Players NEVER see set question
+        mControls.classList.toggle('hidden', !isMaster);
+        pControls.classList.toggle('hidden', isMaster);
+    }
 };

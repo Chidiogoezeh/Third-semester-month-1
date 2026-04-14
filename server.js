@@ -27,13 +27,23 @@ let gameTimeout;
 
 io.on('connection', (socket) => {
     socket.on('joinGame', (username) => {
-        const user = session.addUser(socket.id, username);
-        if (!user) {
-            return socket.emit('error', 'Session full or in progress.');
-        }
+        // Logic check: Allow re-joining if the ID exists (for refresh), 
+        // but block brand new players if game status is 'active'
+        const existingPlayer = session.players.find(p => p.name === username);
         
-        // Crucial: send back the augmented player object
+        if (session.status === 'active' && !existingPlayer) {
+            return socket.emit('error', 'Game in progress. Please wait for the next round.');
+        }
+
+        const user = existingPlayer || session.addUser(socket.id, username);
+        if (existingPlayer) existingPlayer.id = socket.id; // Update ID on refresh
+
         socket.emit('initPlayer', { ...user, id: socket.id });
+        
+        // If a game is currently active, send the question to the re-joined player
+        if (session.status === 'active') {
+            socket.emit('gameStarted', { question: session.currentQuestion });
+        }
         io.emit('updatePlayers', session.getPlayers()); 
     });
 
@@ -66,13 +76,14 @@ io.on('connection', (socket) => {
 
         if (result && result.isCorrect) {
             clearTimeout(gameTimeout);
-            // 1. Tell everyone the game is over and show answer
             io.emit('gameEnded', result); 
-            // 2. Immediately send updated roles/scores so UI switches Master controls
-            io.emit('updatePlayers', session.getPlayers()); 
-        } else if (result) {
-            socket.emit('guessResult', result);
-            io.emit('updatePlayers', session.getPlayers());
+            
+            // Delay the role rotation so players can see the "Winner" screen first
+            setTimeout(() => {
+                session.rotateMaster(); 
+                session.status = 'waiting';
+                io.emit('updatePlayers', session.getPlayers());
+            }, 5000);
         }
     });
 
