@@ -21,23 +21,22 @@ socket.on('initPlayer', (player) => {
     UI.appendMessage(`Logged in as ${player.name}`, 'system');
 });
 
-/* Correct the updatePlayers logic in socket-client.js */
+socket.on('systemMessage', (msg) => {
+    UI.appendMessage(msg, 'system');
+});
+
 socket.on('updatePlayers', (players) => {
     const me = players.find(p => p.id === socket.id);
     
-    // Update local master status based on server-side rotation
-    if (me) {
-        if (me.isMaster !== isMasterStatus) {
-            isMasterStatus = me.isMaster;
-            UI.toggleView(true, isMasterStatus);
-            const roleMsg = isMasterStatus ? "You are the new Master!" : "You are now a Player.";
-            UI.appendMessage(roleMsg, "system");
-        }
+    if (me && me.isMaster !== isMasterStatus) {
+        isMasterStatus = me.isMaster;
+        UI.toggleView(true, isMasterStatus);
+        const roleMsg = isMasterStatus ? "The Master left. You are the new Master!" : "Your role has updated.";
+        UI.appendMessage(roleMsg, "system");
     }
     
     UI.updateScoreboard(players, socket.id);
     const startBtn = document.getElementById('btn-start');
-    // Master can only start if current player count matches or exceeds limit
     if (startBtn) startBtn.disabled = (players.length < 3);
 });
 

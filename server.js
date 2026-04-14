@@ -90,11 +90,21 @@ io.on('connection', (socket) => {
     });
 
     socket.on('disconnect', () => {
-        session.removeUser(socket.id);
+        // 1. Remove the user and check if Master rotated
+        const masterChanged = session.removeUser(socket.id);
+        
+        // 2. If the room is now empty, delete/reset the session entirely
         if (session.players.length === 0) {
-            session.resetAll(); // Logic to clear question/answer for a fresh start
+            clearTimeout(gameTimeout); // Stop any active timers
+            session.resetAll(); 
+            console.log("Session cleared: All players left.");
+        } else {
+            // 3. If players remain, notify them of the departure and potential new Master
+            if (masterChanged) {
+                io.emit('systemMessage', "The Master has left. A new Master has been appointed.");
+            }
+            io.emit('updatePlayers', session.getPlayers());
         }
-        io.emit('updatePlayers', session.getPlayers());
     });
 });
 

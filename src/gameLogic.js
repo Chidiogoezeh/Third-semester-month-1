@@ -73,11 +73,12 @@ export class GameSession {
     }
 
     resetAll() {
+        this.players = [];
+        this.status = 'waiting';
         this.currentQuestion = "";
         this.currentAnswer = "";
-        this.status = 'waiting';
-        this.players = [];
         this.masterIndex = 0;
+        this.requiredPlayers = 3; // Reset to default minimum
     }
 
     endGame(winnerName) {
@@ -115,9 +116,15 @@ export class GameSession {
     }
 
     removeUser(id) {
+        // Find if the leaving user was the Master
+        const wasMaster = this.isMaster(id);
         this.players = this.players.filter(p => p.id !== id);
-        if (this.players.length > 0 && !this.players.some(p => p.isMaster)) {
+
+        // Only rotate Master if the current one left and there are players left
+        if (wasMaster && this.players.length > 0) {
             this.players[0].isMaster = true;
+            return true; // Return true to indicate a master change occurred
         }
+        return false;
     }
 }
