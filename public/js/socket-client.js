@@ -41,7 +41,6 @@ socket.on('updatePlayers', (players) => {
 });
 
 // MASTER ACTIONS
-/* Correct the setup listener in socket-client.js */
 document.getElementById('btn-setup').addEventListener('click', () => {
     const question = document.getElementById('q-input').value.trim();
     const answer = document.getElementById('a-input').value.trim();
@@ -99,15 +98,20 @@ socket.on('gameEnded', (data) => {
     document.getElementById('btn-guess').disabled = true;
     document.getElementById('guess-input').disabled = true;
     
-    const resultText = data.type === 'win' ? `Winner: ${data.winner}!` : `Time's up!`;
-    UI.updateQuestion(`${resultText} Answer: ${data.answer}`);
-    
-    // Display result in chat
-    UI.appendMessage(`--- ${resultText} ---`, 'system');
+    let resultText;
+    if (data.type === 'win') {
+        // "You have won" for winner, answer for others
+        resultText = data.isWinner ? "YOU HAVE WON!" : `${data.winner} won! The answer was: ${data.answer}`;
+    } else {
+        // No winner displayed, show answer
+        resultText = `TIME EXPIRED! The correct answer was: ${data.answer}`;
+    }
+
+    UI.updateQuestion(resultText);
+    UI.appendMessage(resultText, 'system');
 
     setTimeout(() => {
-        // Prepare for next round without master rotation
-        UI.updateQuestion("Master is preparing the next question...");
+        UI.updateQuestion("Waiting for the new Master to set a question...");
         if (isMasterStatus) {
             document.getElementById('q-input').value = '';
             document.getElementById('a-input').value = '';

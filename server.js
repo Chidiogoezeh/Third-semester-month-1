@@ -68,8 +68,14 @@ io.on('connection', (socket) => {
             gameTimeout = setTimeout(() => {
                 const result = session.endByTimeout();
                 if (result) {
-                    io.emit('gameEnded', result);
-                    io.emit('updatePlayers', session.getPlayers()); // Refresh scores/roles
+                    // Display answer to all, no winner, no points
+                    io.emit('gameEnded', { ...result, type: 'timeout' });
+                    
+                    // Rotate master immediately after timeout ends
+                    setTimeout(() => {
+                        session.rotateMaster();
+                        io.emit('updatePlayers', session.getPlayers());
+                    }, 5000);
                 }
             }, 60000);
         }
@@ -79,13 +85,17 @@ io.on('connection', (socket) => {
         const result = session.handleGuess(socket.id, guess);
         if (result && result.isCorrect) {
             clearTimeout(gameTimeout);
-            io.emit('gameEnded', result); 
+            // Winning player sees "You have won", others see winner name
+            socket.emit('gameEnded', { ...result, isWinner: true });
+            socket.broadcast.emit('gameEnded', { ...result, isWinner: false }); 
             
             setTimeout(() => {
                 session.status = 'waiting';
-                // broadcast the current state; roles stay the same
+                session.rotateMaster();
                 io.emit('updatePlayers', session.getPlayers());
             }, 5000);
+        } else if (result) {
+            socket.emit('guessResult', result);
         }
     });
 

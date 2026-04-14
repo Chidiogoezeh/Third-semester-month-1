@@ -8,7 +8,8 @@
 body {
     font-family: 'Segoe UI', system-ui, sans-serif;
     /* Path assumes images are in public/img/ */
-    background: url('../img/guess-background.png') repeat; 
+    background: url('../img/guess-background.png') repeat;
+    background-attachment: fixed;
     background-size: 200px;
     margin: 0;
     display: flex;
@@ -64,10 +65,10 @@ body {
 #message-display {
     flex-grow: 1;
     overflow-y: auto;
-    padding: 20px;
-    background: transparent; /* Show app background */
     display: flex;
     flex-direction: column;
+    padding: 15px;
+    gap: 8px;
 }
 
 .msg {

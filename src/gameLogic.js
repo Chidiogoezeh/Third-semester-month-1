@@ -73,12 +73,11 @@ export class GameSession {
     }
 
     resetAll() {
-        this.players = [];
         this.status = 'waiting';
         this.currentQuestion = "";
         this.currentAnswer = "";
+        this.players = []; // Wipe players to delete session context
         this.masterIndex = 0;
-        this.requiredPlayers = 3; // Reset to default minimum
     }
 
     endGame(winnerName) {
@@ -92,13 +91,23 @@ export class GameSession {
 }
 
     endByTimeout() {
-        if (this.status === 'active') return this.endGame(null);
+        if (this.status === 'active') {
+            const data = {
+                answer: this.currentAnswer,
+                type: 'timeout'
+            };
+            this.status = 'waiting';
+            return data;
+        }
         return null;
     }
 
     rotateMaster() {
-        // Rule: No automatic rotation. Master remains master.
-        return; 
+        // When session ends, another player becomes game master
+        if (this.players.length === 0) return;
+        this.players.forEach(p => p.isMaster = false);
+        this.masterIndex = (this.masterIndex + 1) % this.players.length;
+        this.players[this.masterIndex].isMaster = true;
     }
 
     isMaster(id) {

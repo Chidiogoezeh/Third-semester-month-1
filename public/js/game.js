@@ -30,8 +30,13 @@ export const UI = {
             const li = document.createElement('li');
             if (p.id === currentSocketId) {
                 li.classList.add('current-player');
+                // Requirement 8.1: Disable input if attempts are gone
+                if (!p.isMaster && p.attempts <= 0) {
+                    document.getElementById('btn-guess').disabled = true;
+                    document.getElementById('guess-input').disabled = true;
+                }
             }
-            li.textContent = `${p.name}: ${p.score}pts | ${p.isMaster ? '[Master]' : `Remaining: ${p.attempts}`}`;
+            li.textContent = `${p.name}: ${p.score}pts | ${p.isMaster ? '[Master]' : `Attempts: ${p.attempts}`}`;
             list.appendChild(li);
         });
         document.getElementById('player-count').textContent = `Players: ${players.length}`;
