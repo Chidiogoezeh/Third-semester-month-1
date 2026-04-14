@@ -63,17 +63,16 @@ io.on('connection', (socket) => {
 
     socket.on('submitGuess', (guess) => {
         const result = session.handleGuess(socket.id, guess);
-        
+
         if (result && result.isCorrect) {
-            clearTimeout(gameTimeout); // STOP the timer immediately
-            session.status = 'waiting'; 
-            session.rotateMaster();  
-            io.emit('gameEnded', result); // Broadcast win to EVERYONE
+            clearTimeout(gameTimeout);
+            // 1. Tell everyone the game is over and show answer
+            io.emit('gameEnded', result); 
+            // 2. Immediately send updated roles/scores so UI switches Master controls
             io.emit('updatePlayers', session.getPlayers()); 
-        } 
-        else if (result && result.isCorrect === false) {
+        } else if (result) {
             socket.emit('guessResult', result);
-            io.emit('updatePlayers', session.getPlayers()); // Update attempts on scoreboard
+            io.emit('updatePlayers', session.getPlayers());
         }
     });
 

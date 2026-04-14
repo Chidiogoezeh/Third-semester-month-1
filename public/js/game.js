@@ -10,6 +10,16 @@ export const UI = {
         container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
     },
 
+    updateQuestion: (text) => {
+        document.getElementById('current-question-text').textContent = text;
+    },
+
+    showJoinTicker: (name) => {
+        const ticker = document.getElementById('join-ticker');
+        ticker.textContent = `${name} joined the room`;
+        setTimeout(() => { if(ticker.textContent.includes(name)) ticker.textContent = ''; }, 3000);
+    },
+
     updateScoreboard: (players, currentSocketId) => {
         const list = document.getElementById('score-list');
         list.textContent = ''; 
@@ -25,9 +35,16 @@ export const UI = {
     },
 
     toggleView: (isLoggedIn, isMaster = false) => {
-        document.getElementById('auth-screen').classList.toggle('hidden', isLoggedIn);
-        document.getElementById('game-container').classList.toggle('hidden', !isLoggedIn);
-        document.getElementById('master-controls').classList.toggle('hidden', !isMaster);
-        document.getElementById('player-controls').classList.toggle('hidden', isMaster);
-    }
+        const auth = document.getElementById('auth-screen');
+        const game = document.getElementById('game-container');
+        const master = document.getElementById('master-controls');
+        const player = document.getElementById('player-controls');
+
+        auth.classList.toggle('hidden', isLoggedIn);
+        game.classList.toggle('hidden', !isLoggedIn);
+        
+        // Crucial: Ensure when a game ends, the new Master gets their controls
+        master.classList.toggle('hidden', !isMaster);
+        player.classList.toggle('hidden', isMaster);
+    },
 };

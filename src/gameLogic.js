@@ -49,26 +49,25 @@ export class GameSession {
     handleGuess(id, guess) {
         if (this.status !== 'active') return null;
         const player = this.players.find(p => p.id === id);
-        
         if (!player || player.isMaster || player.attempts <= 0) return null;
-
-        const now = Date.now();
-        if (now - player.lastGuessTime < 1000) return null; 
-        player.lastGuessTime = now;
 
         player.attempts--;
         const isCorrect = guess.toLowerCase().trim() === this.currentAnswer;
 
         if (isCorrect) {
-            this.status = 'ended'; // Lock state so others can't guess
+            this.status = 'ended'; 
             player.score += 10;
-            return { 
+            // Store answer before clearing
+            const finalAnswer = this.currentAnswer;
+            const winnerData = { 
                 isCorrect: true, 
                 winner: player.name, 
                 winnerId: id,
-                answer: this.currentAnswer,
+                answer: finalAnswer,
                 type: 'win'
             };
+            this.rotateMaster(); 
+            return winnerData;
         }
         return { isCorrect: false, attemptsLeft: player.attempts };
     }
@@ -98,12 +97,10 @@ export class GameSession {
     }
 
     rotateMaster() {
-        this.status = 'waiting'; // Ensure game is stopped
-        this.players.forEach(p => p.isMaster = false);
         this.masterIndex = (this.masterIndex + 1) % this.players.length;
-        if (this.players[this.masterIndex]) {
-            this.players[this.masterIndex].isMaster = true;
-        }
+        this.players.forEach((p, index) => {
+            p.isMaster = (index === this.masterIndex);
+        });
     }
 
     isMaster(id) {

@@ -20,8 +20,11 @@
         </section>
 
         <section id="game-container" class="hidden">
+            <div id="active-game-banner">
+                <h2 id="current-question-text">Waiting for Master to set question...</h2>
+                <div id="join-ticker"></div> </div>
+
             <div id="scoreboard">
-                <h3>Scores</h3>
                 <ul id="score-list"></ul>
             </div>
 
@@ -29,15 +32,19 @@
                 <div id="message-display"></div>
                 
                 <div id="master-controls" class="hidden">
-                    <input type="text" id="q-input" placeholder="Question">
-                    <input type="text" id="a-input" placeholder="Answer">
-                    <button id="btn-setup">Set Question</button>
-                    <button id="btn-start" disabled>Start Game (Min 3 players)</button>
+                    <div class="input-group">
+                        <input type="text" id="q-input" placeholder="Enter Question...">
+                        <input type="text" id="a-input" placeholder="Enter Answer...">
+                    </div>
+                    <div class="button-group">
+                        <button id="btn-setup">Set Question</button>
+                        <button id="btn-start" disabled>Start Round</button>
+                    </div>
                 </div>
 
                 <div id="player-controls" class="hidden">
-                    <input type="text" id="guess-input" placeholder="Type your guess...">
-                    <button id="btn-guess">Guess</button>
+                    <input type="text" id="guess-input" placeholder="Your guess..." disabled>
+                    <button id="btn-guess" disabled>Guess</button>
                 </div>
             </div>
         </section>
